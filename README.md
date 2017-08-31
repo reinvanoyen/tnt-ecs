@@ -41,6 +41,22 @@ class Rendering extends System {
     console.log( entity.components.position.x, entity.components.position.x );
     console.log( entity.components.color.r, entity.components.color.g, entity.components.color.b );
   }
+  
+  preUpdate() {
+    console.log('Before all entities are being updated');
+  }  
+
+  postUpdate() {
+    console.log('After all entities are being updated');
+  }
+  
+  enter(entity) {
+    console.log('Enter system', entity);
+  }
+  
+  exit(entity) {
+    console.log('Exit system', entity);
+  }
 }
 
 const ecs = new Core();
@@ -56,12 +72,12 @@ ecs.addEntity(new Entity([
 
 ecs.addEntity(new Entity([
   new Position({x: 50}),
-    new Color({b: 20})
+  new Color({b: 20})
 ]));
 
 ecs.addEntity(new Entity([
   new Position({x: 50}),
-    new Color({r: 0, g: 0, b: 0})
+  new Color({r: 0, g: 0, b: 0})
 ]));
 
 ```
