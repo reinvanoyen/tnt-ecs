@@ -2,3 +2,7 @@
 /build
 /example
 /test
+.babelrc
+.gitignore
+gulpfile.js
+index.html
