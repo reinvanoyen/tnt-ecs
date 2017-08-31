@@ -13,24 +13,25 @@ class System {
   enter(entity) {}
   exit(entity) {}
   update(entity) {}
+  postUpdate() {}
+  preUpdate() {}
 
   addEntity(entity) {
-    this.entities.push(entity);
-    this.enter(entity);
+
+    if (this.entities.indexOf(entity) === -1) {
+      this.entities.push(entity);
+      this.enter(entity);
+    }
   }
 
   removeEntity(entity) {
-    // @TODO
-    /*
-    * let index = this.entities.indexOf(entity);
 
-     if (index !== -1) {
-     entity.removeSystem(this);
-     fastSplice(this.entities, index, 1);
+    let index = this.entities.indexOf(entity);
 
-     this.exit(entity);
-     }
-     */
+    if (index !== -1) {
+      this.entities.splice(index, 1);
+      this.exit(entity);
+    }
   }
 }
 

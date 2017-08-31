@@ -7,7 +7,7 @@ class Entity {
   constructor(components = []) {
     this.id = getId();
     this.core = null;
-    this.components = [];
+    this.components = {};
 
     let i = components.length;
     while(i--) {

@@ -1,10 +1,11 @@
 {
   "name": "tnt-ecs",
   "version": "0.0.1",
-  "main": "./distribution/index.js",
+  "main": "./dist/index.js",
   "scripts": {
-    "build": "babel src --presets babel-preset-es2015 --out-dir distribution",
-    "prepublish": "npm run build"
+    "build": "babel src --presets babel-preset-es2015 --out-dir dist",
+    "prepublish": "npm run build",
+    "test": "mocha --compilers js:babel-core/register"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
@@ -14,11 +15,13 @@
     "browser-sync": "^2.18.8",
     "browserify": "^14.1.0",
     "del": "^2.2.2",
+    "expect.js": "^0.3.1",
     "gulp": "^3.9.1",
     "gulp-uglify": "^2.1.2",
     "gutil": "^1.6.4",
     "jquery": "^3.1.1",
     "lodash.assign": "^4.2.0",
+    "mocha": "^3.5.0",
     "pump": "^1.0.2",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
