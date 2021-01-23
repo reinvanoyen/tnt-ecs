@@ -22,9 +22,9 @@ describe('Core', () => {
       assert.equal(0, core.systems.length);
 
       expect(core.entities).to.be.an('array');
+      expect(core.entityLookup).to.be.an('object');
       expect(core.dirtyEntities).to.be.an('array');
       expect(core.systems).to.be.an('array');
-      expect(core.components).to.be.an('object');
     });
   });
 
@@ -67,10 +67,11 @@ describe('Core', () => {
 describe('System', () => {
 
   describe('#constructor', () => {
-    it('should have an empty array of entities', () => {
-      let system = new System();
+    let system = new System();
+    it('should init', () => {
       assert.equal(0, system.entities.length);
       expect(system.entities).to.be.an('array');
+      expect(system.frequency).to.be.a('number');
     });
   });
 

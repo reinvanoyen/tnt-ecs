@@ -2,20 +2,60 @@
 
 class System {
 
-  constructor() {
+  /**
+   * 
+   * @param frequency
+   */
+  constructor(frequency = 1) {
+    this.core = null;
+    this.frequency = frequency;
     this.entities = [];
   }
 
+  /**
+   * 
+   * @param entity
+   * @returns {boolean}
+   */
   test(entity) {
     return false;
   }
 
+  /**
+   * 
+   * @param entity
+   */
   enter(entity) {}
-  exit(entity) {}
-  update(entity) {}
-  postUpdate() {}
-  preUpdate() {}
 
+  /**
+   * 
+   * @param entity
+   */
+  exit(entity) {}
+
+  /**
+   * 
+   * @param entity
+   * @param delta
+   */
+  update(entity, delta) {}
+
+  /**
+   * 
+   * @param delta
+   */
+  postUpdate(delta) {}
+
+  /**
+   * 
+   * @param delta
+   */
+  preUpdate(delta) {}
+
+  /**
+   * 
+   * @param entity
+   */
   addEntity(entity) {
 
     if (this.entities.indexOf(entity) === -1) {
@@ -24,6 +64,10 @@ class System {
     }
   }
 
+  /**
+   * 
+   * @param entity
+   */
   removeEntity(entity) {
 
     let index = this.entities.indexOf(entity);
