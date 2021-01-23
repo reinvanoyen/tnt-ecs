@@ -1,8 +1,6 @@
+.idea
 /src
-/build
-/example
+/demo
 /test
 .babelrc
 .gitignore
-gulpfile.js
-index.html
