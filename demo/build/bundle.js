@@ -80,7 +80,6 @@ var Movement = /*#__PURE__*/function (_lib$System) {
     key: "update",
     value: function update(entity, delta) {
       console.log('position', entity.components.position.x, entity.components.position.y, delta);
-      console.log(this.core.findEntityById(entity.getId()));
     }
   }]);
 
@@ -177,6 +176,9 @@ var Core = /*#__PURE__*/function () {
     this.dirtyEntities = [];
     this.updateCount = 0;
     this.lastUpdate = _performance["default"].now();
+    this.isRunning = false; // Run the update loop
+
+    this.updateLoop();
   }
   /**
    * Adds the system from the ECS core
@@ -212,11 +214,22 @@ var Core = /*#__PURE__*/function () {
         this.systems.splice(index, 1);
       }
     }
+    /**
+     * Find an entity by ID
+     * @param id
+     * @returns {*|null}
+     */
+
   }, {
     key: "findEntityById",
     value: function findEntityById(id) {
       return this.entityLookup[id] || null;
     }
+    /**
+     * Add an entity the ECS core
+     * @param entity
+     */
+
   }, {
     key: "addEntity",
     value: function addEntity(entity) {
@@ -236,6 +249,11 @@ var Core = /*#__PURE__*/function () {
         }
       }
     }
+    /**
+     * Remove an entity from the ECS core
+     * @param entity
+     */
+
   }, {
     key: "removeEntity",
     value: function removeEntity(entity) {
@@ -257,12 +275,17 @@ var Core = /*#__PURE__*/function () {
         entity.core = null;
       }
     }
+    /**
+     * Update tick
+     */
+
   }, {
     key: "update",
     value: function update() {
       var now = _performance["default"].now();
 
-      var delta = now - this.lastUpdate;
+      var delta = now - this.lastUpdate; // First check the changes in the dirty entities
+
       var d = this.dirtyEntities.length;
 
       while (d--) {
@@ -277,24 +300,62 @@ var Core = /*#__PURE__*/function () {
         }
       }
 
-      this.dirtyEntities = [];
+      this.dirtyEntities = []; // Perform the update tick
+
       var i = this.systems.length;
 
       while (i--) {
         if (this.updateCount % this.systems[i].frequency === 0) {
-          var j = this.systems[i].entities.length;
-          this.systems[i].preUpdate(delta);
+          if (this.systems[i].isRunning) {
+            var j = this.systems[i].entities.length;
+            this.systems[i].preUpdate(delta);
 
-          while (j--) {
-            this.systems[i].update(this.systems[i].entities[j], delta);
+            while (j--) {
+              this.systems[i].update(this.systems[i].entities[j], delta);
+            }
+
+            this.systems[i].postUpdate(delta);
           }
-
-          this.systems[i].postUpdate(delta);
         }
       }
 
       ++this.updateCount;
       this.lastUpdate = now;
+    }
+    /**
+     * Start running the update loop
+     */
+
+  }, {
+    key: "start",
+    value: function start() {
+      this.isRunning = true;
+    }
+    /**
+     * Stop running the update loop
+     */
+
+  }, {
+    key: "stop",
+    value: function stop() {
+      this.isRunning = false;
+    }
+    /**
+     * Run the update loop
+     */
+
+  }, {
+    key: "updateLoop",
+    value: function updateLoop() {
+      var _this = this;
+
+      if (this.isRunning) {
+        this.update();
+      }
+
+      requestAnimationFrame(function () {
+        return _this.updateLoop();
+      });
     }
   }]);
 
@@ -331,18 +392,72 @@ var Entity = /*#__PURE__*/function () {
     this.id = (0, _id["default"])();
     this.core = null;
     this.components = {};
+    this.tags = [];
     var i = components.length;
 
     while (i--) {
       this.components[components[i].getName()] = components[i];
     }
   }
+  /**
+   * Get the ID of the entity
+   * @returns {number}
+   */
+
 
   _createClass(Entity, [{
     key: "getId",
     value: function getId() {
       return this.id;
     }
+    /**
+     * Tag the entity
+     * @param tagName
+     */
+
+  }, {
+    key: "tag",
+    value: function tag(tagName) {
+      if (!this.tags.includes(tagName)) {
+        this.tags.push(tagName);
+
+        if (this.core) {
+          this.core.dirtyEntities.push(this);
+        }
+      }
+    }
+    /**
+     * Remove a tag
+     * @param tagName
+     */
+
+  }, {
+    key: "removeTag",
+    value: function removeTag(tagName) {
+      this.tags = this.tags.filter(function (tag) {
+        return tag !== tagName;
+      });
+
+      if (this.core) {
+        this.core.dirtyEntities.push(this);
+      }
+    }
+    /**
+     * Check if entity has tag
+     * @param tagName
+     * @returns {boolean}
+     */
+
+  }, {
+    key: "hasTag",
+    value: function hasTag(tagName) {
+      return this.tags.includes(tagName);
+    }
+    /**
+     * Add a component to the entity
+     * @param component
+     */
+
   }, {
     key: "addComponent",
     value: function addComponent(component) {
@@ -352,6 +467,11 @@ var Entity = /*#__PURE__*/function () {
         this.core.dirtyEntities.push(this);
       }
     }
+    /**
+     * Remove a component by name
+     * @param name
+     */
+
   }, {
     key: "removeComponent",
     value: function removeComponent(name) {
@@ -362,6 +482,37 @@ var Entity = /*#__PURE__*/function () {
           this.core.dirtyEntities.push(this);
         }
       }
+    }
+    /**
+     * Remove multiple components by name
+     * @param names
+     */
+
+  }, {
+    key: "removeComponents",
+    value: function removeComponents(names) {
+      var i = names.length;
+
+      while (i--) {
+        if (this.components[names[i]]) {
+          delete this.components[names[i]];
+        }
+      }
+
+      if (this.core) {
+        this.core.dirtyEntities.push(this);
+      }
+    }
+    /**
+     * Check if entity has component
+     * @param name
+     * @returns {boolean}
+     */
+
+  }, {
+    key: "hasComponent",
+    value: function hasComponent(name) {
+      return this.components.hasOwnProperty(name);
     }
   }]);
 
@@ -415,30 +566,21 @@ var _default = {
 exports["default"] = _default;
 
 },{"./component":2,"./core":3,"./entity":4,"./system":8}],7:[function(require,module,exports){
-(function (global){(function (){
-"use strict";
+"use strict"; // Check if performance exists on global
+// Otherwise, in node (or potentially older browsers), we decide to fall back to Date.now()
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports["default"] = void 0;
-var performance; // Check if performance exists on global
-// Otherwise, in node (or potentially older browsers), we decide to fall back to Date.now()
-
-if (global.performance) {
-  performance = window.performance;
-} else {
-  performance = {
-    now: function now() {
-      return Date.now();
-    }
-  };
-}
-
+var performance = window.performance ? window.performance : {
+  now: function now() {
+    return Date.now();
+  }
+};
 var _default = performance;
 exports["default"] = _default;
 
-}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],8:[function(require,module,exports){
 "use strict";
 
@@ -466,15 +608,34 @@ var System = /*#__PURE__*/function () {
     this.core = null;
     this.frequency = frequency;
     this.entities = [];
+    this.isRunning = true;
   }
   /**
-   * 
-   * @param entity
-   * @returns {boolean}
+   * Starts this system
    */
 
 
   _createClass(System, [{
+    key: "start",
+    value: function start() {
+      this.isRunning = true;
+    }
+    /**
+     * Stops this system
+     */
+
+  }, {
+    key: "stop",
+    value: function stop() {
+      this.isRunning = false;
+    }
+    /**
+     * 
+     * @param entity
+     * @returns {boolean}
+     */
+
+  }, {
     key: "test",
     value: function test(entity) {
       return false;

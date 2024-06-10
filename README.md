@@ -60,11 +60,18 @@ class Rendering extends System {
 }
 
 const ecs = new Core();
+const rendering = new Rendering();
+ecs.addSystem(rendering);
 
-ecs.addSystem(new Rendering());
+// Start/stop the update loop
+ecs.stop();
+ecs.start();
+
+// Start/stop the system
+rendering.stop();
+rendering.start();
 
 // Add entities
-
 ecs.addEntity(new Entity([
   new Position(),
   new Color()
@@ -80,4 +87,24 @@ ecs.addEntity(new Entity([
   new Color({r: 0, g: 0, b: 0})
 ]));
 
+const camera = new Entity([
+	new Position({x: 50})
+]);
+
+// Removing / adding components
+camera.addComponent(new Color());
+camera.removeComponent('color');
+camera.removeComponents(['position', 'color']);
+
+if (camera.hasComponent('position')) {
+	console.log('This entity has the position component');
+}
+
+// Tagging
+camera.tag('camera');
+camera.removeTag('camera');
+
+if (camera.hasTag('camera')) {
+	console.log('This entity has the camera tag');
+}
 ```

@@ -3,17 +3,20 @@
 import performance from './performance';
 
 class Core {
-  
+
   constructor() {
-    
     this.systems = [];
     this.entities = [];
     this.entityLookup = {};
     this.dirtyEntities = [];
     this.updateCount = 0;
     this.lastUpdate = performance.now();
+    this.isRunning = false;
+
+    // Run the update loop
+    this.updateLoop();
   }
-  
+
   /**
    * Adds the system from the ECS core
    * @param system
@@ -41,16 +44,24 @@ class Core {
     let index = this.systems.indexOf(system);
     
     if (index !== -1) {
-      
       system.core = null;
       this.systems.splice(index, 1);
     }
   }
-  
+
+  /**
+   * Find an entity by ID
+   * @param id
+   * @returns {*|null}
+   */
   findEntityById(id) {
     return this.entityLookup[id] || null;
   }
-  
+
+  /**
+   * Add an entity the ECS core
+   * @param entity
+   */
   addEntity(entity) {
 
     if (this.entities.indexOf(entity) === -1) {
@@ -73,7 +84,11 @@ class Core {
       }
     }
   }
-  
+
+  /**
+   * Remove an entity from the ECS core
+   * @param entity
+   */
   removeEntity(entity) {
 
     let index = this.entities.indexOf(entity);
@@ -97,11 +112,15 @@ class Core {
     }
   }
 
+  /**
+   * Update tick
+   */
   update() {
     
     let now = performance.now();
     let delta = now - this.lastUpdate;
-    
+
+    // First check the changes in the dirty entities
     let d = this.dirtyEntities.length;
 
     while(d--) {
@@ -117,21 +136,48 @@ class Core {
 
     this.dirtyEntities = [];
 
+    // Perform the update tick
     let i = this.systems.length;
 
     while(i--) {
       if (this.updateCount % this.systems[i].frequency === 0) {
-        let j = this.systems[i].entities.length;
-        this.systems[i].preUpdate(delta);
-        while(j--) {
-          this.systems[i].update(this.systems[i].entities[j], delta);
+        if (this.systems[i].isRunning) {
+          let j = this.systems[i].entities.length;
+          this.systems[i].preUpdate(delta);
+          while(j--) {
+            this.systems[i].update(this.systems[i].entities[j], delta);
+          }
+          this.systems[i].postUpdate(delta);
         }
-        this.systems[i].postUpdate(delta);
       }
     }
     
     ++this.updateCount;
     this.lastUpdate = now;
+  }
+
+  /**
+   * Start running the update loop
+   */
+  start() {
+    this.isRunning = true;
+  }
+
+  /**
+   * Stop running the update loop
+   */
+  stop() {
+    this.isRunning = false;
+  }
+
+  /**
+   * Run the update loop
+   */
+  updateLoop() {
+    if (this.isRunning) {
+      this.update();
+    }
+    requestAnimationFrame(() => this.updateLoop());
   }
 }
 

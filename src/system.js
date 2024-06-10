@@ -10,6 +10,21 @@ class System {
     this.core = null;
     this.frequency = frequency;
     this.entities = [];
+    this.isRunning = true;
+  }
+
+  /**
+   * Starts this system
+   */
+  start() {
+    this.isRunning = true;
+  }
+
+  /**
+   * Stops this system
+   */
+  stop() {
+    this.isRunning = false;
   }
 
   /**
