@@ -1,59 +1,69 @@
 "use strict";
 
-import lib from '../../src';
+import ECS from '../../src';
+import RenderingSystem from "./systems/rendering-system";
+import MovementSystem from "./systems/movement-system";
+import Position from "./components/position";
+import Velocity from "./components/velocity";
+import CameraSystem from "./systems/camera-system";
 
 // Create ecs
+const ecs = new ECS.Core();
 
-let ecs = new lib.Core();
+// Adding systems
+const cameraSystem = new CameraSystem();
+ecs.addSystem(new RenderingSystem());
+ecs.addSystem(new MovementSystem());
+ecs.addSystem(cameraSystem);
 
-class Position extends lib.Component {
+cameraSystem.stop();
 
-  getName() {
-    return 'position';
-  }
-
-  getDefaults() {
-    return {x: 0, y: 0};
-  }
-}
-
-// Movement system
-
-class Movement extends lib.System {
-
-  test(entity) {
-    return entity.components.position;
-  }
-
-  update(entity, delta) {
-    console.log('position', entity.components.position.x, entity.components.position.y, delta);
-  }
-}
-
-// Adding system
-ecs.addSystem(new Movement());
+setTimeout(() => {
+    cameraSystem.start();
+}, 5000);
 
 // Adding entity
-let entity = new lib.Entity([
-    new Position()
+const entity = new ECS.Entity([
+    new Position(),
+    new Velocity({x: .05})
+]);
+
+const camera = new ECS.Entity([
+    new Position(),
+    new Velocity({x: .05, y: .05})
 ]);
 
 ecs.addEntity(entity);
-
-setTimeout(() => {
-  ecs.removeEntity(entity);
-}, 3000);
-
-setTimeout(() => {
-  ecs.addEntity(entity);
-}, 5000);
+ecs.addEntity(camera);
 
 // Render loop
-let run = () => {
-  requestAnimationFrame(() => {
-    ecs.update();
-    run();
-  });
-};
+ecs.start();
 
-run();
+setInterval(() => {
+    ecs.stop();
+    setTimeout(() => {
+        ecs.start();
+    }, 2500);
+}, 5000);
+
+setInterval(() => {
+    camera.tag('camera');
+    setTimeout(() => {
+        camera.removeTag('camera');
+    }, 500);
+}, 1000);
+
+setInterval(() => {
+    camera.removeComponents(['position', 'velocity']);
+    setTimeout(() => {
+        camera.addComponent(new Position());
+        camera.addComponent(new Velocity({x: .05, y: .05}));
+    }, 2500);
+}, 5000);
+
+setInterval(() => {
+    entity.removeComponent('velocity');
+    setTimeout(() => {
+        entity.addComponent(new Velocity({x: .05}));
+    }, 5000);
+}, 10000);

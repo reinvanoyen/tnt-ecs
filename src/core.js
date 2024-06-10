@@ -160,6 +160,7 @@ class Core {
    * Start running the update loop
    */
   start() {
+    this.lastUpdate = performance.now();
     this.isRunning = true;
   }
 
